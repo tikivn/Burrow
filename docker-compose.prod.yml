@@ -1,0 +1,5 @@
+version: "2"
+services:
+  burrow:
+    volumes:
+      - ${PWD}/docker-config/burrow.cfg.prod:/etc/burrow/burrow.cfg

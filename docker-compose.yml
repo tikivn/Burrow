@@ -2,27 +2,18 @@ version: "2"
 services:
   burrow:
     build: .
+    container_name: burrow
     volumes:
       - ${PWD}/docker-config:/etc/burrow/
       - ${PWD}/tmp:/var/tmp/burrow
     ports:
       - 8000:8000
-    depends_on:
-      - zookeeper
-      - kafka
-    restart: always
-
-  zookeeper:
-    image: wurstmeister/zookeeper
+  burrow_ui:
+    image: generalmills/burrowui
+    container_name: burrow_ui
     ports:
-      - 2181:2181
-
-  kafka:
-    image: wurstmeister/kafka
-    ports:
-      - 9092:9092
+      - 8080:3000
     environment:
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181/local
-      KAFKA_ADVERTISED_HOST_NAME: kafka
-      KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_CREATE_TOPICS: "test-topic:2:1,test-topic2:1:1,test-topic3:1:1"
+      - BURROW_HOME=http://burrow:8000/v2/kafka
+    depends_on:
+      - burrow
