@@ -9,7 +9,12 @@ node {
     // remove potential '/' in branch name (Ex: feature/bla_bla)
     img_tag = env.BRANCH_NAME.replaceAll(/\//, '_')
     img_dockerhub = "harbor.infra.tiki.services/ci/${project}:${img_tag}"
-    channel = '#system-tmp'
+    if (env.BRANCH_NAME == 'dev') {
+      channel = '#kafka-lag-monitor-uat'
+    }
+    else {
+      channel = '#kafka-lag-monitor'
+    }
 
     notifyBuild('STARTED', channel)
 
@@ -22,13 +27,19 @@ node {
       sh "docker-compose -p ${project} build burrow"
     }
 
-    switch(env.BRANCH_NAME) {
-      case 'master':
-        stage('img -> dockerhub') {
-          sh "docker tag ${img_compose} ${img_dockerhub}"
-          sh "docker push ${img_dockerhub}"
-        }
+    stage('img -> dockerhub') {
+      sh "docker tag ${img_compose} ${img_dockerhub}"
+      sh "docker push ${img_dockerhub}"
+    }
 
+    switch(env.BRANCH_NAME) {
+      case 'dev':
+        stage('deploy') {
+          build job: '../deploy-uat'
+        }
+        break
+
+      case 'master':
         stage('deploy') {
           build job: '../deploy-production'
         }
