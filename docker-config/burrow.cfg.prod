@@ -5,7 +5,7 @@ group-blacklist=^(console-consumer-|python-kafka-consumer-).*$
 [zookeeper]
 hostname=10.20.40.42
 hostname=10.20.40.41
-hostname=10.20.40.21
+hostname=10.20.40.45
 port=2181
 timeout=6
 lock-path=/burrow/notifier
@@ -18,7 +18,7 @@ broker-port=9092
 offsets-topic=__consumer_offsets
 zookeeper=10.20.40.42
 zookeeper=10.20.40.41
-zookeeper=10.20.40.21
+zookeeper=10.20.40.45
 zookeeper-path=/
 zookeeper-offsets=true
 offsets-topic=__consumer_offsets
