@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
-@Library('t-jenkins-shared-library') _
 
+@Library('t-jenkins-shared-library') _
 node {
   try {
     project = "burrow"
@@ -21,6 +21,9 @@ node {
     stage('pull code') {
       checkout scm
 			sh "git checkout ${env.BRANCH_NAME} && git reset --hard origin/${env.BRANCH_NAME}"
+    }
+    stage('push openshift config') {
+      pushOpenshiftConfig(project)
     }
 
     stage('build') {
