@@ -1,9 +1,9 @@
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: DeploymentConfig
 metadata:
-  name: kafka-burrow-be
   labels:
     app: kafka-burrow
+  name: kafka-burrow-be
 spec:
   replicas: 1
   revisionHistoryLimit: 7
@@ -11,17 +11,18 @@ spec:
     metadata:
       labels:
         app: kafka-burrow
+        deploymentconfig: kafka-burrow-be
     spec:
       containers:
         - envFrom:
-          - configMapRef: 
+          - configMapRef:
               name: kafka-burrow
-          image: "harbor.infra.tiki.services/ci/burrow:dev"
-          name: kafka-burrow-be
+              image: "kafka-burrow:dev"
           imagePullPolicy: Always
+          name: kafka-burrow-be
           ports:
             - containerPort: 8000
-              protocol: TCP 
+              protocol: TCP
       terminationGracePeriodSeconds: 10
   triggers:
   - type: ImageChange
@@ -33,13 +34,14 @@ spec:
         kind: ImageStreamTag
         name: "kafka-burrow:dev"
   - type: ConfigChange
+
 ---
 apiVersion: v1
 kind: Service
 metadata:
   labels:
     app: kafka-burrow
-  name: kafka-burrow
+  name: kafka-burrow-be
 spec:
   ports:
   - name: 8000-tcp
@@ -48,13 +50,15 @@ spec:
     targetPort: 8000
   selector:
     app: kafka-burrow
+    deploymentconfig: kafka-burrow-be
+
 ---
-apiVersion: extensions/v1beta1
-kind: Deployment
+apiVersion: v1
+kind: DeploymentConfig
 metadata:
-  name: kafka-burrow-ui
   labels:
     app: kafka-burrow
+  name: kafka-burrow-ui
 spec:
   replicas: 1
   revisionHistoryLimit: 7
@@ -62,17 +66,18 @@ spec:
     metadata:
       labels:
         app: kafka-burrow
+        deploymentconfig: kafka-burrow-ui
     spec:
       containers:
         - env:
           - name: "BURROW_HOME"
-            value: "http://kafka-burrow.t-openshift-play.svc.cluster.local:8000/v2/kafka"
+            value: "http://kafka-burrow-be.t-openshift-play.svc.cluster.local:8000/v2/kafka"
           image: "generalmills/burrowui"
-          name: kafka-burrow-ui
           imagePullPolicy: Always
+          name: kafka-burrow-ui
           ports:
-          - containerPort: 3000
-            protocol: TCP 
+            - containerPort: 3000
+              protocol: TCP
       terminationGracePeriodSeconds: 10
 
 ---
@@ -90,3 +95,35 @@ spec:
     targetPort: 3000
   selector:
     app: kafka-burrow
+    deploymentconfig: kafka-burrow-ui
+
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: kafka-burrow.play.tiki.services
+spec:
+  host: kafka-burrow.play.tiki.services
+  port:
+    targetPort: 3000-tcp
+  to:
+    kind: Service
+    name: kafka-burrow-ui
+    weight: 100
+  wildcardPolicy: None
+
+---
+apiVersion: v1
+kind: Route
+metadata:
+  name: uat.kafka-burrow.tiki.services
+spec:
+  host: uat.kafka-burrow.tiki.services
+  port:
+    targetPort: 3000-tcp
+  to:
+    kind: Service
+    name: kafka-burrow-ui
+    weight: 100
+  wildcardPolicy: None
+
