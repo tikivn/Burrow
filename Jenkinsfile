@@ -22,10 +22,7 @@ node {
       checkout scm
 			sh "git checkout ${env.BRANCH_NAME} && git reset --hard origin/${env.BRANCH_NAME}"
     }
-    stage('push openshift config') {
-      pushOpenshiftConfig(project)
-    }
-
+    
     stage('build') {
       sh "docker-compose -p ${project} build burrow"
     }
